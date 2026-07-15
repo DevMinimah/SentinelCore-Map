@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel Core-Map</title>
+    <title>SentinelCore: Critical Infrastructure Vulnerability Matrix</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -27,11 +27,11 @@
     <!-- Top Navigation Header -->
     <header class="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6 z-10 relative">
         <div class="flex items-center space-x-3">
-            <span class="text-2xl">🌐</span>
-            <h1 class="text-lg font-bold tracking-wide uppercase text-emerald-400">Critical Infrastructure Vulnerability Matrix</h1>
+            <span class="text-2xl"></span>
+            <h1 class="text-lg font-bold tracking-wide uppercase text-emerald-400">SentinelCore Vulnerability Matrix</h1>
         </div>
         <div class="text-xs bg-gray-900 border border-gray-600 px-3 py-1.5 rounded text-gray-400 hidden sm:block">
-            Enviro-GIS & Cyber OSINT Assessment Framework
+            Enviro-GIS & Cyber-Physical OSINT Assessment Framework
         </div>
     </header>
 
@@ -45,7 +45,7 @@
             <div>
                 <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Platform Overview</h2>
                 <p class="text-xs text-gray-300 leading-relaxed">
-                    This static client-side dashboard models geographic environmental exposure alongside simulated industrial control system (ICS) digital perimeter exposures.
+                    Models geographic environmental exposure alongside simulated industrial control system (ICS) and IT digital perimeter exposures across critical national infrastructure.
                 </p>
             </div>
 
@@ -67,12 +67,18 @@
                     <option value="energy">Power & Grid Distribution</option>
                     <option value="water">Water Treatment & Reservoirs</option>
                     <option value="maritime">Maritime Supply Ports</option>
+                    <option value="transport">Transportation & Transit</option>
+                    <option value="telecom">Telecommunications & Data</option>
+                    <option value="healthcare">Healthcare & Emergency</option>
+                    <option value="agriculture">Agriculture & Food Systems</option>
+                    <option value="oilgas">Oil, Gas & Petrochemicals</option>
+                    <option value="education">Educational & Research</option>
                 </select>
             </div>
 
             <!-- Interactive Asset Directory List -->
             <div class="flex-1 flex flex-col min-h-[200px]">
-                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Live Registry</h3>
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Live Registry (<span id="assetCount">0</span> Nodes)</h3>
                 <div id="assetList" class="space-y-2 overflow-y-auto flex-1 text-xs pr-1">
                     <!-- Javascript populates list dynamic nodes here -->
                 </div>
@@ -88,7 +94,6 @@
     
     <script>
         // --- DATA ARCHITECTURE (Mock OSINT Data Dump) ---
-        // NOTE: For your portfolio, consider swapping these coords to Niger Delta or your area of focus!
         const criticalAssets = [
             {
                 id: 1,
@@ -116,14 +121,76 @@
                 envRisk: "Seismic Vulnerability (Liquefaction Category Grade 2)",
                 cyberRisk: "Leaking DNS server revealing subdomains pointing to legacy SCADA asset network gateways.",
                 vulnScore: 68
+            },
+            {
+                id: 4,
+                name: "Lagos-Ibadan Rail Corridor Control Node",
+                type: "transport",
+                coords: [6.5244, 3.3792], // Lagos, Nigeria
+                envRisk: "Track subsidence and soil erosion due to extreme seasonal rainfall",
+                cyberRisk: "Signaling system exposed to SS7 protocol vulnerabilities; unencrypted telemetry data.",
+                vulnScore: 78
+            },
+            {
+                id: 5,
+                name: "Subsea Cable Landing Station (Lekki)",
+                type: "telecom",
+                coords: [6.4474, 3.5469], // Lekki, Nigeria
+                envRisk: "Severe coastal erosion threatening physical cable vault integrity",
+                cyberRisk: "BGP hijacking risk on routing tables; physical access controls bypassed.",
+                vulnScore: 81
+            },
+            {
+                id: 6,
+                name: "Federal Medical Centre Data Hub",
+                type: "healthcare",
+                coords: [4.8156, 7.0498], // Port Harcourt, Nigeria
+                envRisk: "Grid instability causing UPS failure during localized urban flooding",
+                cyberRisk: "Unpatched PACS (medical imaging) server vulnerable to lateral ransomware movement.",
+                vulnScore: 72
+            },
+            {
+                id: 7,
+                name: "Grain Silo & Cold Chain Hub",
+                type: "agriculture",
+                coords: [12.0022, 8.5919], // Kano, Nigeria
+                envRisk: "Desertification and extreme heat degrading storage structural integrity",
+                cyberRisk: "IoT temperature sensors using default MQTT credentials; no network segmentation.",
+                vulnScore: 65
+            },
+            {
+                id: 8,
+                name: "Bonny Terminal Export Manifold",
+                type: "oilgas",
+                coords: [4.4333, 7.1667], // Bonny Island, Nigeria
+                envRisk: "Severe coastal mangrove degradation and high oil spill vulnerability",
+                cyberRisk: "Legacy DCS (Distributed Control System) running unsupported OS; exposed HMI.",
+                vulnScore: 92
+            },
+            {
+                id: 9,
+                name: "NEMA Regional Dispatch HQ",
+                type: "emergency",
+                coords: [9.0579, 7.4951], // Abuja, Nigeria
+                envRisk: "Facility located in high-density urban flood plain",
+                cyberRisk: "Dispatch radio network lacking AES-256 encryption; susceptible to signal jamming.",
+                vulnScore: 58
+            },
+            {
+                id: 10,
+                name: "University Research Supercomputing Node",
+                type: "education",
+                coords: [7.4913, 9.0579], // University zone
+                envRisk: "Roof structural fatigue from extreme weather events",
+                cyberRisk: "Open SSH ports with weak password policies; high-value IP theft target.",
+                vulnScore: 45
             }
         ];
 
         // --- MAP ENGINE INITIALIZATION ---
-        const map = L.map('map', { zoomControl: false }).setView([40.7128, -74.0060], 11);
+        const map = L.map('map', { zoomControl: false }).setView([6.5244, 3.3792], 6); // Centered on Nigeria for demo
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // Fixed CartoDB Dark Matter tile URL
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> &copy; <a href="https://carto.com">CARTO</a>',
             subdomains: 'abcd',
@@ -141,6 +208,9 @@
 
         // --- CORE MAP RENDERING ENGINE ---
         function renderMapAndLists(filteredData) {
+            // Update count
+            document.getElementById('assetCount').innerText = filteredData.length;
+
             // 1. Wipe existing markers off map
             activeMarkers.forEach(marker => map.removeLayer(marker));
             activeMarkers = [];
@@ -163,7 +233,7 @@
                     fillOpacity: 0.85
                 });
 
-                // Attach contextual custom styling popups (Fixed with backticks for template literals)
+                // Attach contextual custom styling popups
                 const popupContent = `
                     <div class="p-2 text-xs custom-popup font-sans">
                         <strong class="text-sm block text-white font-bold border-b border-gray-600 pb-1 mb-2">${asset.name}</strong>
@@ -191,9 +261,9 @@
                     <span class="text-[10px] text-gray-400 uppercase tracking-wide">${asset.type} sector</span>
                 `;
                 
-                // Fly to coordinate function when side element row is clicked (Completed logic)
+                // Fly to coordinate function when side element row is clicked
                 listItem.onclick = () => {
-                    map.flyTo(asset.coords, 14, { duration: 1.5 });
+                    map.flyTo(asset.coords, 13, { duration: 1.5 });
                     marker.openPopup();
                 };
                 
